@@ -1,0 +1,9 @@
+PROJECT_TXT1:
+  - type: internal # internal/jira
+  - id: 1093 # internal office id
+PROJECT_TXT2:
+  - type: jira
+  - url: https://PROJECT.atlassian.net # Jira url
+  - user: user@email.com # Jira user email
+  - api_key: KEY # Jira user API key
+  - main_task: TASK-1 # main task for reporting
