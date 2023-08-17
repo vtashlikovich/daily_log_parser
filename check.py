@@ -23,6 +23,7 @@ INTERNAL_AUTH = os.getenv("INTERNAL_AUTH")
 INTERNAL_USER = os.getenv("INTERNAL_USER")
 INTERNAL_PASSWORD = os.getenv("INTERNAL_PASSWORD")
 INTERNAL_USER_ID = os.getenv("INTERNAL_USER_ID")
+TIME_DELTA_MINSK = 1
 
 
 def remove_dash(line: str) -> str:
@@ -80,7 +81,7 @@ def read_special_projects() -> list[str]:
 
 def format_minsk_time(log_time: str) -> str:
     time_split = log_time.split(":")
-    hour = str(int(time_split[0]) + 2)
+    hour = str(int(time_split[0]) + TIME_DELTA_MINSK)
     if len(hour) < 2:
         hour = "0" + hour
     time_split[0] = hour
