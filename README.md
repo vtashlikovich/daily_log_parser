@@ -6,13 +6,13 @@ It parses daily hours logs in a free manual format, pushes them into the appropr
 
 ```bash
 # just displays the content of the log
-python3 check.py logs.txt
+python3 main.py logs.txt
 OR
-python3 check.py < logs.txt
+python3 main.py < logs.txt
 
 # syncs with appropriate projects for yesterday
-python3 check.py logs.txt -sync
+python3 main.py logs.txt -sync
 
 # syncs with appropriate projects for the specified data
-python3 check.py logs.txt -sync=YYYY-MM-DD
+python3 main.py logs.txt -sync=YYYY-MM-DD
 ```

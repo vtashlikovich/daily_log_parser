@@ -23,7 +23,7 @@ INTERNAL_AUTH = os.getenv("INTERNAL_AUTH")
 INTERNAL_USER = os.getenv("INTERNAL_USER")
 INTERNAL_PASSWORD = os.getenv("INTERNAL_PASSWORD")
 INTERNAL_USER_ID = os.getenv("INTERNAL_USER_ID")
-TIME_DELTA_MINSK = 1
+TIME_DELTA_MINSK = 0
 
 
 def remove_dash(line: str) -> str:
