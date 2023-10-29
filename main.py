@@ -1,28 +1,18 @@
 """Daily logs parser checker."""
 
 import sys
-import os
 from loguru import logger
-from daily_parser.parser import parse_log_file, parse_log_stream
 import yaml
 from yaml.loader import SafeLoader
 from datetime import date, timedelta
-import requests
-import datetime
-import html
-from pytz import timezone
 from jira import JIRA
 from dotenv import load_dotenv
 
 load_dotenv()
 
-requests.packages.urllib3.disable_warnings()
+from daily_parser.parser import parse_log_file, parse_log_stream
+from daily_parser.reports import create_internal_report, create_jira_report
 
-INTERNAL_URL = os.getenv("INTERNAL_URL")
-INTERNAL_AUTH = os.getenv("INTERNAL_AUTH")
-INTERNAL_USER = os.getenv("INTERNAL_USER")
-INTERNAL_PASSWORD = os.getenv("INTERNAL_PASSWORD")
-INTERNAL_USER_ID = os.getenv("INTERNAL_USER_ID")
 TIME_DELTA_MINSK = 0
 
 
@@ -36,38 +26,6 @@ def remove_dash(line: str) -> str:
 def single_line_notes(notes_list: list) -> str:
     processed_notes = [remove_dash(note) for note in notes_list]
     return "; ".join(processed_notes)
-
-
-def convert_time_to_seconds(time=float):
-    return int(round(time * 3600))
-
-
-def create_internal_report(date: str, time: str, project: int,
-                           duration: float, comment: str):
-    headers = {
-        "Authorization": "Basic " + INTERNAL_AUTH
-    }
-
-    comment = html.escape(comment)
-    url = f"{INTERNAL_URL}?mode=json&cmd=saveReport&login={INTERNAL_USER}&pswd={INTERNAL_PASSWORD}&reportDate={date}&reportTime={time}&reportUser={INTERNAL_USER_ID}&reportProject={project}&duration={duration}&description={comment}"
-    # print(url)
-    requests.post(url, headers=headers, verify=False)
-
-
-def create_jira_report(jira, issue: str, date: str, time: str, duration: float,
-                       comment: str):
-    date_parsed = date.split("-")
-    time_parsed = time.split(":")
-
-    time_seconds = convert_time_to_seconds(duration)
-
-    log_datetime = datetime.datetime(year=int(date_parsed[0]), month=int(date_parsed[1]),
-                                     day=int(date_parsed[2]),
-                                     hour=int(time_parsed[0]), minute=int(time_parsed[1]), second=0, microsecond=0,
-                                     tzinfo=timezone('CET'))
-
-    jira.add_worklog(issue=issue, timeSpentSeconds=time_seconds, comment=comment,
-                     started=log_datetime)
 
 
 def read_special_projects() -> list[str]:
