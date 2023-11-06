@@ -6,6 +6,8 @@ import requests
 
 requests.packages.urllib3.disable_warnings()
 
+SIMULATE_SYNC = False
+
 INTERNAL_URL = os.getenv("INTERNAL_URL")
 INTERNAL_AUTH = os.getenv("INTERNAL_AUTH")
 INTERNAL_USER = os.getenv("INTERNAL_USER")
@@ -20,14 +22,15 @@ def create_internal_report(date: str, time: str, project: int,
     }
     
     time = offset_to_belarus_time(time)
-    
-    # print(f'... create internal report {date=} {time=} {duration=}')
-    # return False
 
     comment = html.escape(comment)
     url = f"{INTERNAL_URL}?mode=json&cmd=saveReport&login={INTERNAL_USER}&pswd={INTERNAL_PASSWORD}&reportDate={date}&reportTime={time}&reportUser={INTERNAL_USER_ID}&reportProject={project}&duration={duration}&description={comment}"
-    # print(url)
-    requests.post(url, headers=headers, verify=False)
+    
+    if SIMULATE_SYNC:
+        print(f'... create internal report {date=} {time=} {duration=}')
+        return False
+    else:
+        requests.post(url, headers=headers, verify=False)
 
 
 def create_jira_report(jira, issue: str, date: str, time: str, duration: float,
@@ -46,12 +49,13 @@ def create_jira_report(jira, issue: str, date: str, time: str, duration: float,
                                      # tzinfo=datetime.tzinfo.utcoffset(1))
                                      # tzinfo=timezone('Europe/Warsaw'))
 
-    # print(f'... create Jira report {date=} {time=} {time_seconds=}')
-    # print(f'... {log_datetime=}')
-    # return False
-
-    jira.add_worklog(issue=issue, timeSpentSeconds=time_seconds, comment=comment,
-                     started=log_datetime)
+    if SIMULATE_SYNC:
+        print(f'... create Jira report {date=} {time=} {time_seconds=} {issue=}')
+        print(f'... {log_datetime=}')
+        return False
+    else:
+        jira.add_worklog(issue=issue, timeSpentSeconds=time_seconds, comment=comment,
+            started=log_datetime)
 
 
 def convert_time_to_seconds(time=float):

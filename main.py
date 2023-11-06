@@ -47,6 +47,10 @@ def format_minsk_time(log_time: str) -> str:
     return ":".join(time_split)
 
 
+def note_is_meeting(note: str) -> bool:
+    return "meet" in note or "meeting" in note or "discussion" in note
+
+
 def read_project_settings(projects_settings: dict, project_key: str | int):
 
     current_settings = None
@@ -145,8 +149,12 @@ if parsed_logs:
                 jira = JIRA(server=current_settings["url"],
                             basic_auth=(current_settings["user"], current_settings["api_key"]))
 
+                jira_task = current_settings["main_task"]
+                if "meet_task" in current_settings and note_is_meeting(note):
+                    jira_task = current_settings["meet_task"]
+
                 create_jira_report(
-                    jira, current_settings["main_task"], day_to_sync, project_start, duration, note)
+                    jira, jira_task, day_to_sync, project_start, duration, note)
             else:
                 logger.error(
                     "ERROR: cannot sync project, type is unrecognized!")
