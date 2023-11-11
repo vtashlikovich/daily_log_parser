@@ -3,10 +3,11 @@ import datetime
 from pytz import timezone
 import html
 import requests
+from loguru import logger
 
 requests.packages.urllib3.disable_warnings()
 
-SIMULATE_SYNC = False
+SIMULATE_SYNC = True
 
 INTERNAL_URL = os.getenv("INTERNAL_URL")
 INTERNAL_AUTH = os.getenv("INTERNAL_AUTH")
@@ -27,7 +28,7 @@ def create_internal_report(date: str, time: str, project: int,
     url = f"{INTERNAL_URL}?mode=json&cmd=saveReport&login={INTERNAL_USER}&pswd={INTERNAL_PASSWORD}&reportDate={date}&reportTime={time}&reportUser={INTERNAL_USER_ID}&reportProject={project}&duration={duration}&description={comment}"
     
     if SIMULATE_SYNC:
-        print(f'... create internal report {date=} {time=} {duration=}')
+        logger.info(f'... create internal report {date=} {time=} {duration=}')
         return False
     else:
         requests.post(url, headers=headers, verify=False)
@@ -50,8 +51,8 @@ def create_jira_report(jira, issue: str, date: str, time: str, duration: float,
                                      # tzinfo=timezone('Europe/Warsaw'))
 
     if SIMULATE_SYNC:
-        print(f'... create Jira report {date=} {time=} {time_seconds=} {issue=}')
-        print(f'... {log_datetime=}')
+        logger.info(f'... create Jira report {date=} {time=} {time_seconds=} {issue=}')
+        logger.info(f'... {log_datetime=}')
         return False
     else:
         jira.add_worklog(issue=issue, timeSpentSeconds=time_seconds, comment=comment,

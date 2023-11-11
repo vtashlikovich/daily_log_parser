@@ -4,7 +4,7 @@ import sys
 from loguru import logger
 import yaml
 from yaml.loader import SafeLoader
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from jira import JIRA
 from dotenv import load_dotenv
 
@@ -12,6 +12,11 @@ load_dotenv()
 
 from daily_parser.parser import parse_log_file, parse_log_stream
 from daily_parser.reports import create_internal_report, create_jira_report
+
+logger.remove()
+log_level = "DEBUG"
+log_format = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS zz}</green> | <b>{message}</b>"
+logger.add(sys.stdout, level="INFO", format=log_format, colorize=True, backtrace=True, diagnose=True)
 
 TIME_DELTA_MINSK = 0
 
@@ -111,6 +116,9 @@ if sync_enabled:
     with open("projects.yaml") as f:
         projects_settings = yaml.load(f, Loader=SafeLoader)
 
+    now = datetime.now()
+    logger.add("logs/" + now.strftime("%m.%d.%Y-%H.%M.%S") + ".log", level=log_level, format=log_format, colorize=False, backtrace=True, diagnose=True)
+
 total_hours = 0
 if parsed_logs:
     projects_in_minsk = read_special_projects()
@@ -120,15 +128,15 @@ if parsed_logs:
         if project["project"].lower() in projects_in_minsk:
             project_start = format_minsk_time(project_start)
 
-        print(project_start)
-        print(project["project"])
-        print(project["time"])
+        logger.info(project_start)
+        logger.info(project["project"])
+        logger.info(project["time"])
 
         for note in project["notes"]:
             if not note.startswith("-"):
                 note = "- " + note
-            print(note)
-        print()
+            logger.info(note)
+        logger.info("")
 
         # sync reports if needed
         if sync_enabled:
@@ -162,5 +170,5 @@ if parsed_logs:
         if project["time"]:
             total_hours += float(project["time"])
 
-    print(f"Total hours: {total_hours}")
+    logger.info(f"Total hours: {total_hours}")
     logger.success("done")
