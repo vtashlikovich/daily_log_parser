@@ -15,7 +15,7 @@ from daily_parser.reports import create_internal_report, create_jira_report
 
 logger.remove()
 log_level = "DEBUG"
-log_format = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS zz}</green> | <b>{message}</b>"
+log_format = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS zz}</green> | <level>{level}</level> | <b>{message}</b>"
 logger.add(sys.stdout, level="INFO", format=log_format, colorize=True, backtrace=True, diagnose=True)
 
 TIME_DELTA_MINSK = 0

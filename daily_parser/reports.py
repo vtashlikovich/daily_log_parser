@@ -7,7 +7,7 @@ from loguru import logger
 
 requests.packages.urllib3.disable_warnings()
 
-SIMULATE_SYNC = True
+SIMULATE_SYNC = False
 
 INTERNAL_URL = os.getenv("INTERNAL_URL")
 INTERNAL_AUTH = os.getenv("INTERNAL_AUTH")
