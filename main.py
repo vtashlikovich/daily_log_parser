@@ -7,7 +7,6 @@ from yaml.loader import SafeLoader
 from datetime import date, timedelta, datetime
 from jira import JIRA
 from dotenv import load_dotenv
-
 load_dotenv()
 
 from daily_parser.parser import parse_log_file, parse_log_stream
@@ -18,7 +17,9 @@ log_level = "DEBUG"
 log_format = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS zz}</green> | <level>{level}</level> | <b>{message}</b>"
 logger.add(sys.stdout, level="INFO", format=log_format, colorize=True, backtrace=True, diagnose=True)
 
-TIME_DELTA_MINSK = 0
+# -1 when in PL and DST is on (1 hour difference)
+# 0 when in PL and DST is off (2 hours difference)
+TIME_DELTA_MINSK = -1
 
 
 def remove_dash(line: str) -> str:
@@ -66,8 +67,11 @@ def read_project_settings(projects_settings: dict, project_key: str | int):
     except KeyError:
         pass
 
-    if not current_settings:
-        current_settings = projects_settings[int(project_key)]
+    try:
+        if not current_settings:
+            current_settings = projects_settings[int(project_key)]
+    except ValueError:
+        pass
 
     if current_settings:
         for setting in current_settings:
@@ -112,12 +116,13 @@ else:
 # if sync is enabled we need to read projects settings from yaml file
 projects_settings = None
 
-if sync_enabled:
-    with open("projects.yaml") as f:
-        projects_settings = yaml.load(f, Loader=SafeLoader)
+with open("projects.yaml") as f:
+    projects_settings = yaml.load(f, Loader=SafeLoader)
 
+if sync_enabled:
     now = datetime.now()
-    logger.add("logs/" + now.strftime("%m.%d.%Y-%H.%M.%S") + ".log", level=log_level, format=log_format, colorize=False, backtrace=True, diagnose=True)
+    logger.add("logs/" + now.strftime("%m.%d.%Y-%H.%M.%S") + ".log", level=log_level, format=log_format,
+               colorize=False, backtrace=True, diagnose=True)
 
 total_hours = 0
 if parsed_logs:
@@ -125,11 +130,12 @@ if parsed_logs:
 
     for project in parsed_logs:
         project_start = project["start"]
-        if project["project"].lower() in projects_in_minsk:
+        project_key = project["project"].lower()
+        if project_key in projects_in_minsk:
             project_start = format_minsk_time(project_start)
 
         logger.info(project_start)
-        logger.info(project["project"])
+        logger.info(project_key)
         logger.info(project["time"])
 
         for note in project["notes"]:
@@ -138,12 +144,13 @@ if parsed_logs:
             logger.info(note)
         logger.info("")
 
+        current_settings = read_project_settings(
+            projects_settings, project_key)
+        if "type" not in current_settings:
+            logger.error(f'project key "{project_key}" not found in configuration')
+
         # sync reports if needed
         if sync_enabled:
-            project_key = project["project"].lower()
-
-            current_settings = read_project_settings(
-                projects_settings, project_key)
 
             project_start = project_start + ":00"
             duration = float(project["time"])

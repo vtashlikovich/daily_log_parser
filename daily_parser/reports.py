@@ -1,6 +1,5 @@
 import os
 import datetime
-from pytz import timezone
 import html
 import requests
 from loguru import logger
@@ -16,17 +15,21 @@ INTERNAL_PASSWORD = os.getenv("INTERNAL_PASSWORD")
 INTERNAL_USER_ID = os.getenv("INTERNAL_USER_ID")
 DIFFERENCE_PL_BY = 2
 
+
 def create_internal_report(date: str, time: str, project: int,
                            duration: float, comment: str):
     headers = {
         "Authorization": "Basic " + str(INTERNAL_AUTH)
     }
-    
+
     time = offset_to_belarus_time(time)
 
     comment = html.escape(comment)
-    url = f"{INTERNAL_URL}?mode=json&cmd=saveReport&login={INTERNAL_USER}&pswd={INTERNAL_PASSWORD}&reportDate={date}&reportTime={time}&reportUser={INTERNAL_USER_ID}&reportProject={project}&duration={duration}&description={comment}"
-    
+    url = f"{INTERNAL_URL}?mode=json&cmd=saveReport&login={INTERNAL_USER}&pswd={INTERNAL_PASSWORD}\
+&reportDate={date}&reportTime={time}&reportUser={INTERNAL_USER_ID}&reportProject={project}\
+&duration={duration}&description={comment}"
+
+    # print(url)
     if SIMULATE_SYNC:
         logger.info(f'... create internal report {date=} {time=} {duration=}')
         return False
@@ -47,8 +50,6 @@ def create_jira_report(jira, issue: str, date: str, time: str, duration: float,
                                      day=int(date_parsed[2]),
                                      hour=int(time_parsed[0]), minute=int(time_parsed[1]), second=0, microsecond=0,
                                      tzinfo=tzinfo)
-                                     # tzinfo=datetime.tzinfo.utcoffset(1))
-                                     # tzinfo=timezone('Europe/Warsaw'))
 
     if SIMULATE_SYNC:
         logger.info(f'... create Jira report {date=} {time=} {time_seconds=} {issue=}')
@@ -56,11 +57,12 @@ def create_jira_report(jira, issue: str, date: str, time: str, duration: float,
         return False
     else:
         jira.add_worklog(issue=issue, timeSpentSeconds=time_seconds, comment=comment,
-            started=log_datetime)
+                         started=log_datetime)
 
 
 def convert_time_to_seconds(time=float):
     return int(round(time * 3600))
+
 
 def offset_to_belarus_time(time: str):
     time_list = time.split(':')
