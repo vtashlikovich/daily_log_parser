@@ -125,6 +125,9 @@ if sync_enabled:
                colorize=False, backtrace=True, diagnose=True)
 
 total_hours = 0
+hours_by_projects = {}
+project_switch_num = 0
+last_project = ""
 if parsed_logs:
     projects_in_minsk = read_special_projects()
 
@@ -148,6 +151,18 @@ if parsed_logs:
             projects_settings, project_key)
         if "type" not in current_settings:
             logger.error(f'project key "{project_key}" not found in configuration')
+
+        # gather statistics of total hours by projects
+        if project_key in hours_by_projects:
+            hours_by_projects[project_key] += float(project["time"])
+        else:
+            hours_by_projects[project_key] = float(project["time"])
+
+        # count project switches
+        if last_project != project_key:
+            if last_project != "":
+                project_switch_num += 1
+            last_project = project_key
 
         # sync reports if needed
         if sync_enabled:
@@ -178,4 +193,15 @@ if parsed_logs:
             total_hours += float(project["time"])
 
     logger.info(f"Total hours: {total_hours}")
+
+    # print total logs count
+    logger.info(f"Logs count: {len(parsed_logs)}")
+
+    # print total project switches
+    logger.info(f"Project switches: {project_switch_num}")
+
+    # print statistics of total hours by projects
+    for project, hours in hours_by_projects.items():
+        logger.info(f"- {project}: {hours}")
+
     logger.success("done")
