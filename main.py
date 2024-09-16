@@ -7,10 +7,29 @@ from yaml.loader import SafeLoader
 from datetime import date, timedelta, datetime
 from jira import JIRA
 from dotenv import load_dotenv
+from redminelib import Redmine
+
 load_dotenv()
 
 from daily_parser.parser import parse_log_file, parse_log_stream
 from daily_parser.reports import create_internal_report, create_jira_report
+from daily_parser.reports import (
+    create_internal_report,
+    create_jira_report,
+    sync_external_redmine_system,
+)
+
+# Redmine activities list
+ACTIVITIES = {
+    "Design": 8,
+    "Dev": 9,
+    "BA": 10,
+    "Test": 11,
+    "Code Review": 12,
+    "Documentation": 13,
+    "Non-dev": 14,
+}
+
 
 logger.remove()
 log_level = "DEBUG"
@@ -132,12 +151,14 @@ if parsed_logs:
     projects_in_minsk = read_special_projects()
 
     for project in parsed_logs:
-        project_start = project["start"]
+        start_time = project["start"]
         project_key = project["project"].lower()
+        task_id = project["task"]
         if project_key in projects_in_minsk:
-            project_start = format_minsk_time(project_start)
+            start_time = format_minsk_time(start_time)
 
-        logger.info(project_start)
+        logger.info(start_time)
+        logger.info(task_id)
         logger.info(project_key)
         logger.info(project["time"])
 
@@ -167,14 +188,42 @@ if parsed_logs:
         # sync reports if needed
         if sync_enabled:
 
-            project_start = project_start + ":00"
+            start_time = start_time + ":00"
             duration = float(project["time"])
 
             note = single_line_notes(project["notes"])
 
             if current_settings["type"] == "internal":
-                create_internal_report(day_to_sync, project_start,
-                                       current_settings["id"], str(duration), note)
+                create_internal_report(
+                    day_to_sync, start_time, current_settings["id"], str(duration), note
+                )
+
+                if "sync" in current_settings:
+                    if current_settings["sync"] == "redmine":
+                        redmine = Redmine(
+                            current_settings["url"], key=current_settings["apikey"]
+                        )
+
+                        activity_id = ACTIVITIES["Dev"]
+
+                        if task_id is None:
+                            task_id = current_settings["main_task"]
+                            if "meet_task" in current_settings and note_is_meeting(
+                                note
+                            ):
+                                task_id = current_settings["meet_task"]
+                                activity_id = ACTIVITIES["Non-dev"]
+
+                        sync_external_redmine_system(
+                            redmine,
+                            day_to_sync,
+                            start_time,
+                            task_id,
+                            activity_id,
+                            str(duration),
+                            note,
+                        )
+
             elif current_settings["type"] == "jira":
                 jira = JIRA(server=current_settings["url"],
                             basic_auth=(current_settings["user"], current_settings["api_key"]))
@@ -184,15 +233,14 @@ if parsed_logs:
                     jira_task = current_settings["meet_task"]
 
                 create_jira_report(
-                    jira, jira_task, day_to_sync, project_start, duration, note)
+                    jira, jira_task, day_to_sync, start_time, duration, note
+                )
             else:
                 logger.error(
                     "ERROR: cannot sync project, type is unrecognized!")
 
         if project["time"]:
             total_hours += float(project["time"])
-
-    logger.info(f"Total hours: {total_hours}")
 
     # print total logs count
     logger.info(f"Logs count: {len(parsed_logs)}")
@@ -203,5 +251,8 @@ if parsed_logs:
     # print statistics of total hours by projects
     for project, hours in hours_by_projects.items():
         logger.info(f"- {project}: {hours}")
+
+    logger.info(f"")
+    logger.info(f"--Total hours: {total_hours}")
 
     logger.success("done")

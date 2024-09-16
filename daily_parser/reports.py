@@ -7,6 +7,7 @@ from loguru import logger
 requests.packages.urllib3.disable_warnings()
 
 SIMULATE_SYNC = False
+SIMULATE_REDMINE_SYNC = False
 
 INTERNAL_URL = os.getenv("INTERNAL_URL")
 INTERNAL_AUTH = os.getenv("INTERNAL_AUTH")
@@ -58,6 +59,38 @@ def create_jira_report(jira, issue: str, date: str, time: str, duration: float,
     else:
         jira.add_worklog(issue=issue, timeSpentSeconds=time_seconds, comment=comment,
                          started=log_datetime)
+
+
+def sync_external_redmine_system(
+    redmine,
+    date: str,
+    start_time: str,
+    task_id: str,
+    activity_id: int,
+    duration_hours: str,
+    note: str,
+):
+    time_entry_data = {
+        "issue_id": task_id,
+        "hours": duration_hours,
+        "comments": note,
+    }
+
+    if not activity_id:
+        activity_id = 8
+
+    time_entry_data["activity_id"] = activity_id
+
+    if date:
+        time_entry_data["spent_on"] = date
+
+    if SIMULATE_REDMINE_SYNC:
+        logger.info(
+            f"... create external report {date=} {duration_hours=} {task_id=} {activity_id=}"
+        )
+        return False
+    else:
+        time_entry = redmine.time_entry.create(**time_entry_data)
 
 
 def convert_time_to_seconds(time=float):

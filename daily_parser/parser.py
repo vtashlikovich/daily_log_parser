@@ -67,10 +67,12 @@ def parse_log_project(pline: str) -> str:
     """Parse project title."""
     project_title = ''.join(pline.split('/')[1:]).strip()
     complex_title = project_title.split(',')
+    project_task = None
     if len(complex_title) > 1:
         project_title = complex_title[0].strip()
+        project_task = complex_title[1].strip()
 
-    return project_title
+    return project_title, project_task
 
 
 def parse_log_notes(pline: str, notes: list[str]) -> None:
@@ -128,6 +130,7 @@ def parse_log_stream(stream) -> list[dict]:
 
     cur_log_start = None
     cur_log_project = None
+    cur_log_project_task = None
     cur_log_notes = []
     cur_log_time = None
 
@@ -144,35 +147,47 @@ def parse_log_stream(stream) -> list[dict]:
                 cur_log_time = line
 
             if log_type == LOG_END and is_time_format(line):
-                result.append({
-                    'start': cur_log_start,
-                    'project': cur_log_project,
-                    'notes': cur_log_notes,
-                    'time': calc_log_end(cur_log_start, line).replace('\n', '')
-                })
+                result.append(
+                    {
+                        "start": cur_log_start,
+                        "project": cur_log_project,
+                        "task": cur_log_project_task,
+                        "notes": cur_log_notes,
+                        "time": calc_log_end(cur_log_start, line).replace("\n", ""),
+                    }
+                )
             else:
-                result.append({
-                    'start': cur_log_start,
-                    'project': cur_log_project,
-                    'notes': cur_log_notes,
-                    'time': (cur_log_time if cur_log_time is not None else
-                             calc_log_end(cur_log_start, line)).replace('\n', '')
-                })
+                result.append(
+                    {
+                        "start": cur_log_start,
+                        "project": cur_log_project,
+                        "task": cur_log_project_task,
+                        "notes": cur_log_notes,
+                        "time": (
+                            cur_log_time
+                            if cur_log_time is not None
+                            else calc_log_end(cur_log_start, line)
+                        ).replace("\n", ""),
+                    }
+                )
 
             if log_type == LOG_END:
                 cur_log_start = None
                 cur_log_project = None
+                cur_log_project_task = None
                 cur_log_notes = []
                 cur_log_time = None
             else:
                 cur_log_start = parse_log_time(line)
-                cur_log_project = parse_log_project(line)
+                cur_log_project = parse_log_project(line)[0]
+                cur_log_project_task = parse_log_project(line)[1]
                 cur_log_notes = []
                 parse_log_notes(line, cur_log_notes)
                 cur_log_time = None
         elif log_type == LOG_START:
             cur_log_start = parse_log_time(line)
-            cur_log_project = parse_log_project(line)
+            cur_log_project = parse_log_project(line)[0]
+            cur_log_project_task = parse_log_project(line)[1]
             parse_log_notes(line, cur_log_notes)
         elif log_type == LOG_NOTES:
             proc_line = line.replace('\n', '')
