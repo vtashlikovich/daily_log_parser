@@ -17,8 +17,10 @@ INTERNAL_USER_ID = os.getenv("INTERNAL_USER_ID")
 DIFFERENCE_PL_BY = 2
 
 
-def create_internal_report(date: str, time: str, project: int,
-                           duration: float, comment: str):
+def create_internal_report(
+    date: str, time: str, project: int, duration: float, comment: str
+):
+
     headers = {
         "Authorization": "Basic " + str(INTERNAL_AUTH)
     }
@@ -26,13 +28,16 @@ def create_internal_report(date: str, time: str, project: int,
     time = offset_to_belarus_time(time)
 
     comment = html.escape(comment)
+
     url = f"{INTERNAL_URL}?mode=json&cmd=saveReport&login={INTERNAL_USER}&pswd={INTERNAL_PASSWORD}\
 &reportDate={date}&reportTime={time}&reportUser={INTERNAL_USER_ID}&reportProject={project}\
 &duration={duration}&description={comment}"
 
     # print(url)
     if SIMULATE_SYNC:
-        logger.info(f'... create internal report {date=} {time=} {duration=}')
+        logger.info(
+            f"... create internal report {date=} {time=} {duration=} {comment=}"
+        )
         return False
     else:
         requests.post(url, headers=headers, verify=False)
@@ -53,7 +58,9 @@ def create_jira_report(jira, issue: str, date: str, time: str, duration: float,
                                      tzinfo=tzinfo)
 
     if SIMULATE_SYNC:
-        logger.info(f'... create Jira report {date=} {time=} {time_seconds=} {issue=}')
+        logger.info(
+            f"... create Jira report {date=} {time=} {time_seconds=} {issue=} {comment=}"
+        )
         logger.info(f'... {log_datetime=}')
         return False
     else:
@@ -86,7 +93,7 @@ def sync_external_redmine_system(
 
     if SIMULATE_REDMINE_SYNC:
         logger.info(
-            f"... create external report {date=} {duration_hours=} {task_id=} {activity_id=}"
+            f"... create external report {date=} {duration_hours=} {task_id=} {activity_id=} {note=}"
         )
         return False
     else:

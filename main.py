@@ -170,6 +170,7 @@ if parsed_logs:
 
         current_settings = read_project_settings(
             projects_settings, project_key)
+
         if "type" not in current_settings:
             logger.error(f'project key "{project_key}" not found in configuration')
 
@@ -194,8 +195,28 @@ if parsed_logs:
             note = single_line_notes(project["notes"])
 
             if current_settings["type"] == "internal":
+
+                # custom start
+                activity_id = ACTIVITIES["Dev"]
+
+                if task_id is None and "main_task" in current_settings:
+                    task_id = current_settings["main_task"]
+                    if "meet_task" in current_settings and note_is_meeting(note):
+                        task_id = current_settings["meet_task"]
+                        activity_id = ACTIVITIES["Non-dev"]
+                # custom end
+
+                internal_note = note
+
+                if "format_note" in current_settings:
+                    internal_note = f"#{task_id}, {note}"
+
                 create_internal_report(
-                    day_to_sync, start_time, current_settings["id"], str(duration), note
+                    day_to_sync,
+                    start_time,
+                    current_settings["id"],
+                    str(duration),
+                    internal_note,
                 )
 
                 if "sync" in current_settings:
@@ -203,16 +224,6 @@ if parsed_logs:
                         redmine = Redmine(
                             current_settings["url"], key=current_settings["apikey"]
                         )
-
-                        activity_id = ACTIVITIES["Dev"]
-
-                        if task_id is None:
-                            task_id = current_settings["main_task"]
-                            if "meet_task" in current_settings and note_is_meeting(
-                                note
-                            ):
-                                task_id = current_settings["meet_task"]
-                                activity_id = ACTIVITIES["Non-dev"]
 
                         sync_external_redmine_system(
                             redmine,
