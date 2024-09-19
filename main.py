@@ -1,13 +1,14 @@
 """Daily logs parser checker."""
 
 import sys
+from datetime import date, timedelta, datetime
 from loguru import logger
 import yaml
 from yaml.loader import SafeLoader
-from datetime import date, timedelta, datetime
 from jira import JIRA
 from dotenv import load_dotenv
 from redminelib import Redmine
+from enum import Enum
 
 load_dotenv()
 
@@ -19,16 +20,16 @@ from daily_parser.reports import (
     sync_external_redmine_system,
 )
 
+
 # Redmine activities list
-ACTIVITIES = {
-    "Design": 8,
-    "Dev": 9,
-    "BA": 10,
-    "Test": 11,
-    "Code Review": 12,
-    "Documentation": 13,
-    "Non-dev": 14,
-}
+class Activities(Enum):
+    Design = 8
+    Dev = 9
+    BA = 10
+    Test = 11
+    Code_Review = 12
+    Documentation = 13
+    Non_dev = 14
 
 
 logger.remove()
@@ -197,13 +198,13 @@ if parsed_logs:
             if current_settings["type"] == "internal":
 
                 # custom start
-                activity_id = ACTIVITIES["Dev"]
+                activity_id = Activities.Dev.value
 
                 if task_id is None and "main_task" in current_settings:
                     task_id = current_settings["main_task"]
                     if "meet_task" in current_settings and note_is_meeting(note):
                         task_id = current_settings["meet_task"]
-                        activity_id = ACTIVITIES["Non-dev"]
+                        activity_id = Activities.Non_dev.value
                 # custom end
 
                 internal_note = note
