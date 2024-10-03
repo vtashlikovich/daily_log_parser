@@ -210,7 +210,7 @@ if parsed_logs:
                 internal_note = note
 
                 if "format_note" in current_settings:
-                    internal_note = f"#{task_id}, {note}"
+                    internal_note = f"#{task_id} {note}"
 
                 create_internal_report(
                     day_to_sync,
