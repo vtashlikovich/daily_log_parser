@@ -75,7 +75,7 @@ def parse_log_project(pline: str) -> str:
     return project_title, project_task
 
 
-def parse_log_notes(pline: str, notes: list[str]) -> None:
+def add_title_addon_to_notes(pline: str, notes: list[str]) -> None:
     """Find and store note after the project title if any"""
     complex_title = pline.split(',')
     if len(complex_title) > 1:
@@ -182,13 +182,13 @@ def parse_log_stream(stream) -> list[dict]:
                 cur_log_project = parse_log_project(line)[0]
                 cur_log_project_task = parse_log_project(line)[1]
                 cur_log_notes = []
-                parse_log_notes(line, cur_log_notes)
+                # add_title_addon_to_notes(line, cur_log_notes)
                 cur_log_time = None
         elif log_type == LOG_START:
             cur_log_start = parse_log_time(line)
             cur_log_project = parse_log_project(line)[0]
             cur_log_project_task = parse_log_project(line)[1]
-            parse_log_notes(line, cur_log_notes)
+            # add_title_addon_to_notes(line, cur_log_notes)
         elif log_type == LOG_NOTES:
             proc_line = line.replace('\n', '')
             if len(proc_line) > 0:

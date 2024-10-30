@@ -1,4 +1,4 @@
-certifi==2024.7.04
+certifi==2024.7.4
 charset-normalizer==3.0.1
 click==8.1.3
 defusedxml==0.7.1

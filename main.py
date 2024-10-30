@@ -13,7 +13,6 @@ from enum import Enum
 load_dotenv()
 
 from daily_parser.parser import parse_log_file, parse_log_stream
-from daily_parser.reports import create_internal_report, create_jira_report
 from daily_parser.reports import (
     create_internal_report,
     create_jira_report,
