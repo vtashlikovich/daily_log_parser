@@ -27,8 +27,9 @@ def create_internal_report(
     time = offset_to_belarus_time(time)
 
     comment = urllib.parse.quote(comment)
+    password = urllib.parse.quote(INTERNAL_PASSWORD)
 
-    url = f"{INTERNAL_URL}?mode=json&cmd=saveReport&login={INTERNAL_USER}&pswd={INTERNAL_PASSWORD}\
+    url = f"{INTERNAL_URL}?mode=json&cmd=saveReport&login={INTERNAL_USER}&pswd={password}\
 &reportDate={date}&reportTime={time}&reportUser={INTERNAL_USER_ID}&reportProject={project}\
 &duration={duration}&description={comment}"
 
