@@ -210,6 +210,7 @@ def parse_log_file(file_to_path: str) -> list[dict]:
 
     return parsed_log_dict
 
+# method for running
 
 # ================================================
 if __name__ == '__main__':

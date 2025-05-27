@@ -36,9 +36,12 @@ log_level = "DEBUG"
 log_format = "<green>{time:YYYY-MM-DD HH:mm:ss.SSS zz}</green> | <level>{level}</level> | <b>{message}</b>"
 logger.add(sys.stdout, level="INFO", format=log_format, colorize=True, backtrace=True, diagnose=True)
 
+# read delta from config file (.env)
 # -1 when in PL and DST is on (1 hour difference)
 # 0 when in PL and DST is off (2 hours difference)
-TIME_DELTA_MINSK = -1
+# -2 when in Minsk
+TIME_DELTA_MINSK = 0
+
 
 
 def remove_dash(line: str) -> str:
