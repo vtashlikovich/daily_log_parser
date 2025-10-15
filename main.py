@@ -242,9 +242,17 @@ if parsed_logs:
                 jira = JIRA(server=current_settings["url"],
                             basic_auth=(current_settings["user"], current_settings["api_key"]))
 
-                jira_task = current_settings["main_task"]
+                if task_id is not None:
+                    jira_task = task_id
+                else:
+                    jira_task = current_settings["main_task"]
+
                 if "meet_task" in current_settings and note_is_meeting(note):
                     jira_task = current_settings["meet_task"]
+
+                if "task_key" in current_settings:
+                    if not jira_task.startswith(current_settings["task_key"]):
+                        jira_task = current_settings["task_key"] + "-" + jira_task
 
                 create_jira_report(
                     jira, jira_task, day_to_sync, start_time, duration, note
