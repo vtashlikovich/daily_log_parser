@@ -40,7 +40,7 @@ logger.add(sys.stdout, level="INFO", format=log_format, colorize=True, backtrace
 # -1 when in PL and DST is on (1 hour difference)
 # 0 when in PL and DST is off (2 hours difference)
 # -2 when in Minsk
-TIME_DELTA_MINSK = 0
+TIME_DELTA_MINSK = -1
 
 
 
@@ -273,6 +273,8 @@ if parsed_logs:
     # print statistics of total hours by projects
     for project, hours in hours_by_projects.items():
         logger.info(f"- {project}: {hours}")
+        if hours <= 0:
+            logger.error(f"project '{project}' has invalid hours: {hours}")
 
     logger.info(f"")
     logger.info(f"--Total hours: {total_hours}")
