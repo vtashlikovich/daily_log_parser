@@ -40,6 +40,7 @@ logger.add(sys.stdout, level="INFO", format=log_format, colorize=True, backtrace
 # -1 when in PL and DST is on (1 hour difference)
 # 0 when in PL and DST is off (2 hours difference)
 # -2 when in Minsk
+# TODO: move to configuration later
 TIME_DELTA_MINSK = -1
 
 
